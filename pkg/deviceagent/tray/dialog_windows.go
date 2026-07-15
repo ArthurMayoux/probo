@@ -33,3 +33,7 @@ func showAbout(version string) {
 	)
 	nativeMessageBox("Probo Device Posture Agent", message, mbOK|mbIconInformation)
 }
+
+func showEnrollmentError(message string) {
+	nativeMessageBox("Probo Device Posture Agent", message, mbOK|mbIconError)
+}
