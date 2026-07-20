@@ -22,51 +22,22 @@
 
 package elevate
 
-import (
-	"fmt"
-	"os/exec"
-	"strings"
+import "errors"
 
-	"go.probo.inc/probo/pkg/deviceagent/checks"
+// ErrPrivilegedHelperRequired is returned when a non-root process asks for
+// elevation on macOS. Browser enrollment must go through the signed
+// Probo Agent.app XPC helper (installed by the PKG); CLI install/uninstall
+// require sudo.
+var ErrPrivilegedHelperRequired = errors.New(
+	"macOS elevation requires the signed Probo Agent.app privileged helper " +
+		"(browser enroll via PKG-installed helper) or sudo " +
+		"(CLI: sudo probo-agent install|uninstall)",
 )
 
-func runElevatedInstall(opts InstallOptions, enrollmentToken string) error {
-	parts := []string{
-		shellQuote(opts.ExePath),
-		"install",
-		"--server",
-		shellQuote(opts.ServerURL),
-		"--enrollment-token",
-		shellQuote(enrollmentToken),
-	}
-	if opts.ConfigDir != "" {
-		parts = append(parts, "--dir", shellQuote(opts.ConfigDir))
-	}
-
-	shellCmd := strings.Join(parts, " ")
-
-	script := fmt.Sprintf(
-		`do shell script %s with administrator privileges`,
-		applescriptQuote(shellCmd),
-	)
-
-	candidates := checks.CommandCandidates("osascript")
-	if len(candidates) == 0 {
-		return fmt.Errorf("command %q not available at expected absolute path", "osascript")
-	}
-
-	out, err := exec.Command(candidates[0], "-e", script).CombinedOutput()
-
-	return commandError(out, err)
+func runElevatedInstall(_ InstallOptions, _ string) error {
+	return ErrPrivilegedHelperRequired
 }
 
-func shellQuote(v string) string {
-	return "'" + strings.ReplaceAll(v, "'", `'"'"'`) + "'"
-}
-
-func applescriptQuote(v string) string {
-	v = strings.ReplaceAll(v, `\`, `\\`)
-	v = strings.ReplaceAll(v, `"`, `\"`)
-
-	return `"` + v + `"`
+func runElevatedUninstall(_ UninstallOptions) error {
+	return ErrPrivilegedHelperRequired
 }
