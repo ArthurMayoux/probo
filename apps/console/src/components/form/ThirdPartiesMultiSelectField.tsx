@@ -191,6 +191,7 @@ function ThirdPartiesMultiSelectWithQuery<T extends FieldValues = FieldValues>(
                       <span>{thirdParty.name}</span>
                       {!props.disabled && (
                         <Button
+                          type="button"
                           variant="tertiary"
                           icon={IconCrossLargeX}
                           onClick={() => handleRemoveThirdParty(thirdParty.id)}
